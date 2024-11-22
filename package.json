@@ -1,0 +1,13 @@
+{
+  "devDependencies": {
+    "@biomejs/biome": "1.9.4",
+    "@mlc-ai/web-llm": "0.2.75",
+    "@types/bun": "latest"
+  },
+  "name": "webllm",
+  "module": "index.ts",
+  "type": "module",
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  }
+}
