@@ -1,5 +1,8 @@
 import * as webllm from "@mlc-ai/web-llm";
 
+type ModelNames =
+| "Llama-3.1-8B-Instruct-q4f32_1-MLC"
+
 class LLM {
 	constructor(
 		public engine: webllm.MLCEngine,
@@ -14,7 +17,7 @@ class LLM {
 		},
 	) {}
 	static async FromModelName(
-		selectedModel = "Llama-3.1-8B-Instruct-q4f32_1-MLC",
+		selectedModel: ModelNames = "Llama-3.1-8B-Instruct-q4f32_1-MLC",
 		initProgressCallback: webllm.InitProgressCallback = (initProgress) => {
 			console.log(initProgress);
 		},
@@ -66,6 +69,12 @@ class LLM {
 }
 
 async function main() {
+	const serviceWorkerUrl = new URL("service-worker.js", import.meta.url);
+	console.debug({ serviceWorkerUrl });
+
+	// register service worker
+	await navigator.serviceWorker.register(serviceWorkerUrl.href);
+
 	// biome-ignore lint/style/noNonNullAssertion: <explanation>
 	const loadStatus = document.getElementById("loadstatus")!;
 	const chatInput = document.getElementById("chatinput") as HTMLTextAreaElement;
@@ -74,8 +83,7 @@ async function main() {
 	const chatOutput = document.getElementById(
 		"chatoutput",
 	) as HTMLTextAreaElement;
-	// register service worker
-	await navigator.serviceWorker.register("/service-worker.js");
+
 	const llm = await LLM.FromModelName(undefined, (initProgress) => {
 		loadStatus.innerText = initProgress.text;
 	});
