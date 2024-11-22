@@ -15,3 +15,5 @@ if (!result.success) {
 
 await Bun.write("dist/index.html", Bun.file("src/index.html"))
 await Bun.write("dist/service-worker.js", Bun.file("src/service-worker.js"))
+
+console.log("Build complete")
