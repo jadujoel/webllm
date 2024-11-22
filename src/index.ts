@@ -88,6 +88,10 @@ async function main() {
 		loadStatus.innerText = initProgress.text;
 	}).catch((error) => {
 		loadStatus.innerText = `Error: ${JSON.stringify(error)}`;
+		if (error?.name?.includes("WebGPUNotAvailableError")) {
+			loadStatus.innerText += "\n\nWebGPU is not available on this device.";
+			loadStatus.innerText += "\n\nOn iphone you can enable it in Advanced Settings for Safari.";
+		}
 	});
 	if (llm === undefined) {
 		return;
