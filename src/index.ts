@@ -86,7 +86,12 @@ async function main() {
 
 	const llm = await LLM.FromModelName(undefined, (initProgress) => {
 		loadStatus.innerText = initProgress.text;
+	}).catch((error) => {
+		loadStatus.innerText = `Error: ${JSON.stringify(error)}`;
 	});
+	if (llm === undefined) {
+		return;
+	}
 	llm.setSystemMessage("You are a helpful AI assistant.");
 	llm.setOnChunk((chunk) => {
 		chatOutput.textContent += chunk.choices[0]?.delta.content ?? "";
