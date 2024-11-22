@@ -87,6 +87,7 @@ async function main() {
 	const llm = await LLM.FromModelName(undefined, (initProgress) => {
 		loadStatus.innerText = initProgress.text;
 	}).catch((error) => {
+		console.log("Load LLM Error:", error)
 		loadStatus.innerText = `Error: ${JSON.stringify(error)}`;
 		if (error?.name?.includes("WebGPUNotAvailableError")) {
 			loadStatus.innerText += "\n\nWebGPU is not available on this device.";
