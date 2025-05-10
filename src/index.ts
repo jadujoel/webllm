@@ -1,7 +1,7 @@
 import * as webllm from "@mlc-ai/web-llm";
 
-type ModelNames =
-| "Llama-3.1-8B-Instruct-q4f32_1-MLC"
+// list of models: https://github.com/mlc-ai/web-llm-chat/blob/ac629bc115c69d7563ded5031418a1f96ebf52e5/app/constant.ts#L197
+import { type Models as ModelNames, DEFAULT_MODEL_BASES } from "./models.ts"
 
 class LLM {
 	constructor(
@@ -17,9 +17,11 @@ class LLM {
 		},
 	) {}
 	static async FromModelName(
-		selectedModel: ModelNames = "Llama-3.1-8B-Instruct-q4f32_1-MLC",
+		// selectedModel: ModelNames = "Llama-3.1-8B-Instruct-q4f32_1-MLC",
+		// selectedModel: ModelNames = "Qwen3-0.6B-q4f32_1-MLC",
+		selectedModel: ModelNames = "Qwen3-8B-q4f16_1-MLC",
 		initProgressCallback: webllm.InitProgressCallback = (initProgress) => {
-			console.log(initProgress);
+			console.log("init progress", initProgress);
 		},
 	) {
 		const engine = await webllm.CreateMLCEngine(
@@ -41,6 +43,7 @@ class LLM {
 	}
 	async sendMessage(content: string, history = this.history): Promise<string> {
 		this.history.push([this.systemMessage, content]);
+		console.log("Send Message", content)
 		const previous: webllm.ChatCompletionMessageParam[] = history.flatMap(
 			(item) => ({
 				role: "user",
@@ -60,6 +63,7 @@ class LLM {
 
 		let reply = "";
 		for await (const chunk of chunks) {
+			console.log("Reply Chunk", chunk)
 			reply += chunk.choices[0]?.delta.content || "";
 			this.history.at(-1)?.push(reply);
 			this.onchunk(chunk);
@@ -69,11 +73,33 @@ class LLM {
 }
 
 async function main() {
-	const serviceWorkerUrl = new URL("service-worker.js", import.meta.url);
-	console.debug({ serviceWorkerUrl });
+	const selected = localStorage.getItem("jadujoel/model-choice") ?? "Qwen3-8B-q4f16_1-MLC"
+	console.log("Selected Model", selected)
+	const model = DEFAULT_MODEL_BASES
+	// biome-ignore lint/style/noNonNullAssertion: <explanation>
+	const input = <HTMLInputElement> document.getElementById("model-choice")!
+	// biome-ignore lint/style/noNonNullAssertion: <explanation>
+	const list = <HTMLDataListElement> document.getElementById("models")!
+	for (const name of model) {
+		const option = document.createElement("option")
+		option.value = name.name
+		option.innerText = name.family
+		if (option.value === selected) {
+			option.selected = true
+			input.value = selected
+		}
+		list.appendChild(option)
+	}
+
+	input.addEventListener("change", ev => {
+		const selected = (ev.target as unknown as { value: string }).value
+		localStorage.setItem("jadujoel/model-choice", selected)
+		window.location.reload()
+	})
+
 
 	// register service worker
-	await navigator.serviceWorker.register(serviceWorkerUrl.href);
+	await navigator.serviceWorker.register("service-worker.js");
 
 	// biome-ignore lint/style/noNonNullAssertion: <explanation>
 	const loadStatus = document.getElementById("loadstatus")!;

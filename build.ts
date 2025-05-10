@@ -1,19 +1,24 @@
+export async function build() {
+  const result = await Bun.build({
+    entrypoints: [
+      "src/index.html"
+    ],
+    outdir: "./dist",
+    minify: true,
+    sourcemap: "linked",
+    splitting: true,
+  })
 
+  if (!result.success) {
+    console.error(result.logs)
+    process.exit(1)
+  }
 
-const result = await Bun.build({
-  entrypoints: [
-    "src/index.ts"
-  ],
-  outdir: "./dist",
-  minify: true,
-})
+  await Bun.write("dist/service-worker.js", Bun.file("src/service-worker.js"))
 
-if (!result.success) {
-  console.error(result.logs)
-  process.exit(1)
+  console.log("Build complete")
 }
 
-await Bun.write("dist/index.html", Bun.file("src/index.html"))
-await Bun.write("dist/service-worker.js", Bun.file("src/service-worker.js"))
-
-console.log("Build complete")
+if (import.meta.main) {
+  await build()
+}
