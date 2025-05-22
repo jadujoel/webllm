@@ -1,4 +1,5 @@
 import * as webllm from "@mlc-ai/web-llm";
+import "./index.css"
 
 // list of models: https://github.com/mlc-ai/web-llm-chat/blob/ac629bc115c69d7563ded5031418a1f96ebf52e5/app/constant.ts#L197
 import { type Models as ModelNames, DEFAULT_MODEL_BASES } from "./models.ts"
@@ -73,6 +74,10 @@ class LLM {
 }
 
 async function main() {
+	// @ts-expect-error
+	const { default: render } = await import("https://jadujoel.github.io/markdown-renderer/index.js")
+	console.log("Render", render)
+
 	const selected = localStorage.getItem("jadujoel/model-choice") ?? "Qwen3-8B-q4f16_1-MLC"
 	console.log("Selected Model", selected)
 	const model = DEFAULT_MODEL_BASES
@@ -110,6 +115,8 @@ async function main() {
 		"chatoutput",
 	) as HTMLTextAreaElement;
 
+	let textOutput = ""
+
 	const llm = await LLM.FromModelName(undefined, (initProgress) => {
 		loadStatus.innerText = initProgress.text;
 	}).catch((error) => {
@@ -123,18 +130,20 @@ async function main() {
 	if (llm === undefined) {
 		return;
 	}
+
 	llm.setSystemMessage("You are a helpful AI assistant.");
 	llm.setOnChunk((chunk) => {
-		chatOutput.textContent += chunk.choices[0]?.delta.content ?? "";
+		const text = (chunk.choices[0]?.delta.content ?? "")
+			.replaceAll("<think>", "think:")
+		textOutput += text
+		const ret = render(textOutput);
+    chatOutput.innerHTML = ret.html
 	});
+
 
 	submitButton.addEventListener("click", async () => {
 		const content = chatInput.value;
-		chatOutput.textContent += `You: ${content}\n`;
-		chatInput.value = "";
-		chatOutput.textContent += "AI:\n";
 		await llm.sendMessage(content);
-		chatOutput.textContent += "\n";
 	});
 }
 
